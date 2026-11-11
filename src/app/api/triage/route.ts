@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { triage } from "@/lib/ai";
+import { MAX_TEXT_LENGTH, triage } from "@/lib/ai";
 
 // POST /api/triage  { text } → { cases: Case[], mode: "live" | "mock" | "fallback" }
-const BodySchema = z.object({ text: z.string().trim().min(3, "Please describe the problem.").max(4000) });
+const BodySchema = z.object({
+  text: z.string().trim().min(3, "Please describe the problem.").max(MAX_TEXT_LENGTH),
+});
 
 export const maxDuration = 30; // seconds (Vercel); the LLM call itself times out at 20 s
 

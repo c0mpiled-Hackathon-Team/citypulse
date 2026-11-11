@@ -56,7 +56,13 @@ export type Incident = {
 };
 ```
 
-- `POST /api/triage` body `{ text: string }` → `{ cases: Case[] }`
+- `POST /api/triage` body `{ text: string }` → `{ cases: Case[], mode: "live" | "mock" | "fallback" }`.
+  `mode` is `mock` with no LLM key and `fallback` when the AI call failed (keyword guess). Cases have
+  `lat`/`lng` = `null` unless geocoded; the map places them by `district`.
+- `POST /api/group` body `{ cases: Case[], minSize?: number }` → `{ incidents: Incident[] }`. A case joins
+  an incident when it has the same category, is in the same district as (or ≤300 m from) a member, and is
+  ≤48 h after the incident's first report. `createdAt` must be ISO 8601; case ids must be unique.
+- Both return `400 { error: string }` on bad input (types: `GroupRequest`, `GroupResponse`, `ApiError`).
 - Seeded demo cases: `src/data/seed.json` → `Case[]`
 
 ### Timeline

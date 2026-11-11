@@ -1,6 +1,7 @@
-// Taipei districts, approximate centre points, and distance helpers.
-// Used by the AI triage (to place a case when we only know the district) and by grouping.
-// Owned by AI + API. The map has its own src/data/districts.json; keep names in sync.
+// Taipei districts: name normalization, finding districts in free text, and distance helpers.
+// Used by the AI triage and by grouping. Centre points come from the map's src/data/districts.json.
+
+import districtsData from "@/data/districts.json";
 
 export const DISTRICTS = [
   "Zhongzheng",
@@ -19,20 +20,11 @@ export const DISTRICTS = [
 
 export type District = (typeof DISTRICTS)[number];
 
-export const DISTRICT_CENTERS: Record<District, { lat: number; lng: number }> = {
-  Zhongzheng: { lat: 25.0324, lng: 121.5199 },
-  Datong: { lat: 25.0634, lng: 121.513 },
-  Zhongshan: { lat: 25.0685, lng: 121.5266 },
-  Songshan: { lat: 25.05, lng: 121.5776 },
-  "Da'an": { lat: 25.0263, lng: 121.5436 },
-  Wanhua: { lat: 25.0286, lng: 121.4979 },
-  Xinyi: { lat: 25.033, lng: 121.5654 },
-  Shilin: { lat: 25.0929, lng: 121.526 },
-  Beitou: { lat: 25.1321, lng: 121.4987 },
-  Neihu: { lat: 25.0697, lng: 121.588 },
-  Nangang: { lat: 25.0549, lng: 121.607 },
-  Wenshan: { lat: 24.9897, lng: 121.5703 },
-};
+/** Centre of a district, from the map team's districts.json (single source of truth). */
+export function districtCenter(d: District): { lat: number; lng: number } | null {
+  const row = (districtsData as { name: string; lat: number; lng: number }[]).find((x) => x.name === d);
+  return row ? { lat: row.lat, lng: row.lng } : null;
+}
 
 const DISTRICTS_ZH: Record<string, District> = {
   中正: "Zhongzheng",
@@ -54,7 +46,7 @@ const DISTRICTS_ZH: Record<string, District> = {
 
 const squash = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
 
-/** "Daan", "Da'an District", "大安區" → "Da'an". Unknown → null. */
+/** A model-supplied district field: "Daan", "Da'an District", "大安區" → "Da'an". Unknown → null. */
 export function normalizeDistrict(input: string | null | undefined): District | null {
   if (!input) return null;
   for (const [zh, en] of Object.entries(DISTRICTS_ZH)) {
@@ -64,13 +56,21 @@ export function normalizeDistrict(input: string | null | undefined): District | 
   return DISTRICTS.find((d) => squash(d) === s) ?? null;
 }
 
+// Whole-word district name in English text ("Da'an", "Daan", "Da-an", "Da an"), but not when it is
+// part of a road name: "Xinyi Rd" runs through Da'an, "Zhongshan N Rd" through several districts.
+const ROAD_AFTER = String.raw`(?!\s+(?:(?:N|S|E|W|North|South|East|West)\.?\s+)?(?:Rd|Road|St|Street|Ave|Avenue|Blvd)\b)`;
+const DISTRICT_PATTERNS: [RegExp, District][] = DISTRICTS.map((d) => [
+  new RegExp(String.raw`\b${d.replace("'", String.raw`['’\- ]?`)}\b${ROAD_AFTER}`, "i"),
+  d,
+]);
+
 // Well-known streets/landmarks → district, for complaints that name a place but not the district.
 // Checked in order, so more specific patterns go first.
 const PLACE_HINTS: [RegExp, District][] = [
-  [/zhongxiao\s*e(?:ast|\.)?\s*(?:road|rd)[^.]*?sec(?:tion|\.)?\s*5|忠孝東路五段/i, "Xinyi"],
-  [/zhongxiao\s*e(?:ast|\.)?\s*(?:road|rd)[^.]*?sec(?:tion|\.)?\s*1|忠孝東路一段/i, "Zhongzheng"],
+  [/zhongxiao\s*e(?:ast|\.)?\s*(?:road|rd).{0,20}?sec(?:tion|\.)?\s*5|忠孝東路五段/i, "Xinyi"],
+  [/zhongxiao\s*e(?:ast|\.)?\s*(?:road|rd).{0,20}?sec(?:tion|\.)?\s*1|忠孝東路一段/i, "Zhongzheng"],
   [/zhongxiao\s*e(?:ast|\.)?\s*(?:road|rd)|忠孝東路/i, "Da'an"],
-  [/taipei\s*101|xinyi\s*(?:district|shopping)|台北101|臺北101/i, "Xinyi"],
+  [/taipei\s*101|台北101|臺北101/i, "Xinyi"],
   [/ximen(?:ding)?|longshan\s*temple|西門|龍山寺/i, "Wanhua"],
   [/shilin\s*night\s*market|士林夜市/i, "Shilin"],
   [/raohe|饒河/i, "Songshan"],
@@ -80,17 +80,25 @@ const PLACE_HINTS: [RegExp, District][] = [
   [/beitou\s*hot\s*spring|北投溫泉/i, "Beitou"],
 ];
 
-/** Find the Taipei district a free-text complaint refers to (English or Chinese). */
-export function findDistrictInText(text: string): District | null {
+/** Every district a complaint names (Chinese "…區", whole-word English names), else from place hints. */
+export function districtsInText(text: string): District[] {
+  const found = new Set<District>();
   for (const [zh, en] of Object.entries(DISTRICTS_ZH)) {
-    if (text.includes(zh + "區") || text.includes(zh + "区")) return en;
+    if (text.includes(zh + "區") || text.includes(zh + "区")) found.add(en);
   }
-  const s = squash(text);
-  // Longest names first so "Zhongzheng" wins over "Zhongshan" substrings, etc.
-  const byLength = [...DISTRICTS].sort((a, b) => b.length - a.length);
-  const named = byLength.find((d) => s.includes(squash(d)));
-  if (named) return named;
-  return PLACE_HINTS.find(([re]) => re.test(text))?.[1] ?? null;
+  for (const [re, d] of DISTRICT_PATTERNS) if (re.test(text)) found.add(d);
+  if (found.size === 0) {
+    const hint = PLACE_HINTS.find(([re]) => re.test(text));
+    if (hint) found.add(hint[1]);
+  }
+  return [...found];
+}
+
+/** The district a piece of text refers to, only when it is unambiguous (exactly one). */
+export function findDistrictInText(text: string | null | undefined): District | null {
+  if (!text) return null;
+  const all = districtsInText(text);
+  return all.length === 1 ? all[0] : null;
 }
 
 /** Great-circle distance in metres. */

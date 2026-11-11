@@ -36,3 +36,10 @@ export type Incident = {
 // POST /api/triage
 export type TriageRequest = { text: string };
 export type TriageResponse = { cases: Case[]; mode: "live" | "mock" | "fallback" };
+
+// POST /api/group. minSize defaults to 2 (only real duplicates); 1 returns every placeable case.
+export type GroupRequest = { cases: Case[]; minSize?: number };
+export type GroupResponse = { incidents: Incident[] };
+
+// Any 400 from /api/triage or /api/group.
+export type ApiError = { error: string };
