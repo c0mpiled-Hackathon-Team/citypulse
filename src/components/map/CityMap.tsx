@@ -30,6 +30,29 @@ function ClickToPick({ onPick }: { onPick: (pick: Pick) => void }) {
   return null;
 }
 
+// "Full city" button under the zoom controls. Only shown once the map is zoomed in past the whole-Taipei view.
+function FullCityButton() {
+  const map = useMap();
+  const fitZoom = () => map.getBoundsZoom(TAIPEI_BOUNDS);
+  const [zoomedIn, setZoomedIn] = useState(false);
+  useMapEvents({ zoomend: () => setZoomedIn(map.getZoom() > fitZoom() + 0.5) });
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current) DomEvent.disableClickPropagation(ref.current);
+  }, []);
+  return (
+    <div ref={ref} className={`absolute left-[10px] top-[84px] z-[1000] ${zoomedIn ? "" : "hidden"}`}>
+      <button
+        type="button"
+        onClick={() => map.flyToBounds(TAIPEI_BOUNDS, { duration: 0.8 })}
+        className="rounded-md border-2 border-black/20 bg-white px-2.5 py-1 text-sm font-medium text-zinc-800 shadow-sm hover:bg-zinc-50"
+      >
+        ← Full city
+      </button>
+    </div>
+  );
+}
+
 // "Where am I" button, top-right of the map.
 function LocateButton() {
   const map = useMap();
@@ -133,6 +156,7 @@ export default function CityMap({ cases, incidents = [], highlightIds = [], colo
       className={`h-full w-full rounded-xl !bg-zinc-100 dark:!bg-zinc-900 ${onPick ? "cursor-crosshair" : ""}`}
     >
       <LocateButton />
+      <FullCityButton />
       <FlyToHighlights positions={highlightPositions} />
       {onPick && <ClickToPick onPick={onPick} />}
       {/* Districts get their own pane below the pins, so a lifted district never covers a pin. */}
