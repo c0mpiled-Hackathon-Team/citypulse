@@ -3,7 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { DomEvent, latLngBounds, type Layer, type PathOptions } from "leaflet";
 import { useEffect, useRef, useState } from "react";
-import { Circle, CircleMarker, GeoJSON, MapContainer, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { Circle, CircleMarker, GeoJSON, MapContainer, Pane, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import shapes from "@/data/district-shapes.json";
 import type { Case, Incident } from "@/lib/types";
 import { districtAt, geocode } from "./geocode";
@@ -106,6 +106,14 @@ export default function CityMap({ cases, incidents = [], highlightIds = [], colo
     // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run only when the case list changes
   }, [cases]);
 
+  // District under the mouse, for the lift effect's info box.
+  const [hovered, setHovered] = useState<string | null>(null);
+  const perDistrict: Record<string, number> = {};
+  for (const c of cases) {
+    const d = findDistrict(c.district)?.name;
+    if (d && visible.has(c.category)) perDistrict[d] = (perDistrict[d] ?? 0) + 1;
+  }
+
   const grouped = new Set(incidents.flatMap((i) => i.caseIds));
   const colorOf = (category: string) => colors[category] ?? "#6b7280";
   // A new case that joined an incident is drawn as part of that incident, so fly there instead.
@@ -127,24 +135,51 @@ export default function CityMap({ cases, incidents = [], highlightIds = [], colo
       <LocateButton />
       <FlyToHighlights positions={highlightPositions} />
       {onPick && <ClickToPick onPick={onPick} />}
-      <GeoJSON
-        data={shapes as GeoJSON.FeatureCollection}
-        style={(feature) =>
-          ({
-            fillColor: DISTRICT_FILL[feature?.properties.name] ?? "#e5e7eb",
-            fillOpacity: 0.85,
-            color: "#ffffff",
-            weight: 2,
-          }) satisfies PathOptions
-        }
-        onEachFeature={(feature, layer: Layer) => {
-          layer.bindTooltip(feature.properties.name, { permanent: true, direction: "center", className: "district-label" });
-          layer.on({
-            mouseover: (e) => e.target.setStyle({ weight: 4, fillOpacity: 1 }),
-            mouseout: (e) => e.target.setStyle({ weight: 2, fillOpacity: 0.85 }),
-          });
-        }}
-      />
+      {/* Districts get their own pane below the pins, so a lifted district never covers a pin. */}
+      <Pane name="districts" style={{ zIndex: 350 }}>
+        <GeoJSON
+          data={shapes as GeoJSON.FeatureCollection}
+          style={(feature) =>
+            ({
+              fillColor: DISTRICT_FILL[feature?.properties.name] ?? "#e5e7eb",
+              fillOpacity: 0.9,
+              color: "#ffffff",
+              weight: 2,
+            }) satisfies PathOptions
+          }
+          onEachFeature={(feature, layer: Layer) => {
+            layer.bindTooltip(feature.properties.name, { permanent: true, direction: "center", className: "district-label" });
+            layer.on({
+              // The lift itself is CSS (.district-hot in globals.css); bringToFront keeps the raised
+              // district's shadow on top of its neighbours.
+              mouseover: (e) => {
+                e.target.bringToFront();
+                e.target.getElement()?.classList.add("district-hot");
+                setHovered(feature.properties.name);
+              },
+              mouseout: (e) => {
+                e.target.getElement()?.classList.remove("district-hot");
+                setHovered(null);
+              },
+            });
+          }}
+        />
+      </Pane>
+
+      <div className="leaflet-bottom leaflet-left">
+        <div className="leaflet-control rounded-lg bg-white/95 px-3 py-2 text-sm shadow-md dark:bg-zinc-900/95">
+          {hovered ? (
+            <>
+              <span className="font-semibold">{hovered}</span>
+              <span className="ml-2 text-zinc-500">
+                {perDistrict[hovered] ?? 0} report{perDistrict[hovered] === 1 ? "" : "s"}
+              </span>
+            </>
+          ) : (
+            <span className="text-zinc-500">Hover a district</span>
+          )}
+        </div>
+      </div>
 
       {incidents
         .filter((incident) => visible.has(incident.category))

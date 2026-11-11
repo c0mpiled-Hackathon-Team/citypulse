@@ -19,6 +19,25 @@
   }
 }
 
+/* District shapes lift on hover: raise a few px, drop a shadow, brighten. */
+.leaflet-districts-pane path {
+  cursor: pointer;
+  transition: transform 0.15s ease-out, filter 0.15s ease-out;
+}
+.leaflet-districts-pane path.district-hot {
+  transform: translateY(-5px);
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.35)) brightness(1.06);
+  stroke-width: 3;
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-districts-pane path {
+    transition: none;
+  }
+  .leaflet-districts-pane path.district-hot {
+    transform: none;
+  }
+}
+
 /* District name in the middle of each district shape on the map. */
 .leaflet-tooltip.district-label {
   background: transparent;
