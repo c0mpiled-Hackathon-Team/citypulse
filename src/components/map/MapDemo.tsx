@@ -15,7 +15,7 @@ export function MapDemo() {
       <p className="text-sm text-zinc-600 dark:text-zinc-400">
         {picked
           ? `Picked: ${picked.district ?? "outside Taipei"} (${picked.lat.toFixed(4)}, ${picked.lng.toFixed(4)})`
-          : "Click the map to choose a location for a new report."}
+          : "Click a district to zoom in, then click again to choose a location for a new report."}
       </p>
     </>
   );

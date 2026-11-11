@@ -122,7 +122,7 @@ export function ReportDesk() {
           <span className="text-sm text-zinc-500">
             {picked
               ? `📍 Location: ${picked.district ?? "outside Taipei"} (from the map)`
-              : "Optional: click the map to mark the exact spot."}
+              : "Optional: click a district on the map to zoom in, then click the exact spot."}
           </span>
         </div>
         {error && (

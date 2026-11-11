@@ -1,7 +1,7 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { divIcon, DomEvent, latLngBounds, type Layer, type PathOptions } from "leaflet";
+import { divIcon, DomEvent, geoJSON, latLngBounds, type LatLngBounds, type Layer, type PathOptions } from "leaflet";
 import { useEffect, useRef, useState } from "react";
 import { Circle, CircleMarker, GeoJSON, MapContainer, Marker, Pane, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import shapes from "@/data/district-shapes.json";
@@ -33,8 +33,26 @@ function FlyToHighlights({ positions }: { positions: [number, number][] }) {
   return null;
 }
 
-function ClickToPick({ onPick }: { onPick: (pick: Pick) => void }) {
-  useMapEvents({ click: (e) => onPick({ lat: e.latlng.lat, lng: e.latlng.lng, district: districtAt(e.latlng.lat, e.latlng.lng) }) });
+// Bounds of each district shape, for zooming into a clicked district.
+const DISTRICT_BOUNDS: Record<string, LatLngBounds> = Object.fromEntries(
+  (shapes as GeoJSON.FeatureCollection).features.map((f) => [f.properties?.name, geoJSON(f).getBounds()]),
+);
+
+// Map clicks: zoomed out → fly into the clicked district (like the issue tracker).
+// Already zoomed into that district → mark the exact spot (if picking is on).
+function MapClicks({ onPick }: { onPick?: (pick: Pick) => void }) {
+  const map = useMapEvents({
+    click: (e) => {
+      const { lat, lng } = e.latlng;
+      const district = districtAt(lat, lng);
+      const bounds = district ? DISTRICT_BOUNDS[district] : undefined;
+      if (bounds && map.getZoom() < map.getBoundsZoom(bounds) - 0.5) {
+        map.flyToBounds(bounds, { duration: 0.7, padding: [20, 20] });
+        return;
+      }
+      onPick?.({ lat, lng, district });
+    },
+  });
   return null;
 }
 
@@ -166,7 +184,7 @@ export default function CityMap({ cases, incidents = [], highlightIds = [], colo
       <LocateButton />
       <FullCityButton />
       <FlyToHighlights positions={highlightPositions} />
-      {onPick && <ClickToPick onPick={onPick} />}
+      <MapClicks onPick={onPick} />
       {/* Districts get their own pane below the pins, so a lifted district never covers a pin. */}
       <Pane name="districts" style={{ zIndex: 350 }}>
         <GeoJSON
