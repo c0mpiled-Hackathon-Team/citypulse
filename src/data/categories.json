@@ -19,5 +19,33 @@
     "office": "Taipei Water Department",
     "officeZh": "臺北自來水事業處",
     "typicalDaysToClose": 2
+  },
+  {
+    "name": "Road repair",
+    "nameZh": "道路維修",
+    "office": "New Construction Bureau, Public Works Dept",
+    "officeZh": "工務局新建工程處",
+    "typicalDaysToClose": 3
+  },
+  {
+    "name": "Streetlight",
+    "nameZh": "路燈故障",
+    "office": "Park and Street Lights Office",
+    "officeZh": "工務局公園路燈工程管理處",
+    "typicalDaysToClose": 2
+  },
+  {
+    "name": "Garbage",
+    "nameZh": "垃圾清理",
+    "office": "Department of Environmental Protection",
+    "officeZh": "臺北市政府環境保護局",
+    "typicalDaysToClose": 1
+  },
+  {
+    "name": "Other",
+    "nameZh": "其他",
+    "office": "Taipei City Government 1999 Citizen Hotline",
+    "officeZh": "臺北市政府1999市民當家熱線",
+    "typicalDaysToClose": null
   }
 ]

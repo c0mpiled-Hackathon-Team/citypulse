@@ -182,7 +182,8 @@ function keywordRegex(k: string): RegExp {
   return /[a-z]/i.test(k) ? new RegExp(`\\b${escapeRe(k)}`, "i") : new RegExp(escapeRe(k));
 }
 
-const CATEGORY_KEYWORDS: [Category, RegExp[]][] = CATEGORIES.map((cat) => {
+// The catch-all is never keyword-matched ("the other night" is not a category), only used as a fallback.
+const CATEGORY_KEYWORDS: [Category, RegExp[]][] = CATEGORIES.filter((c) => c !== OTHER_CATEGORY).map((cat) => {
   const name = cat.name.toLowerCase();
   const extra = Object.entries(KEYWORDS)
     .filter(([key]) => name.includes(key))
