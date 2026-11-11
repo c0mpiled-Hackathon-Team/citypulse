@@ -1,7 +1,7 @@
 import districts from "@/data/districts.json";
 import type { Case } from "@/lib/types";
 
-export const TAIPEI_CENTER: [number, number] = [25.045, 121.545];
+export const TAIPEI_BOUNDS: [[number, number], [number, number]] = [[24.96, 121.45], [25.21, 121.67]];
 
 // Small stable offset from the case id, so several cases in one district don't sit on the same spot.
 function jitter(id: string): [number, number] {
@@ -14,7 +14,7 @@ function jitter(id: string): [number, number] {
   return [Math.sin(angle) * r, Math.cos(angle) * r];
 }
 
-function findDistrict(name: string | null) {
+export function findDistrict(name: string | null) {
   if (!name) return undefined;
   const key = name.toLowerCase().replace(/district|區|\s|'/g, "");
   return districts.find(

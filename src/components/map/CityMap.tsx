@@ -1,72 +1,115 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { Circle, CircleMarker, MapContainer, Popup, TileLayer, Tooltip } from "react-leaflet";
+import type { Layer, PathOptions } from "leaflet";
+import { useEffect, useState } from "react";
+import { Circle, CircleMarker, GeoJSON, MapContainer, Popup, Tooltip } from "react-leaflet";
+import shapes from "@/data/district-shapes.json";
 import type { Case, Incident } from "@/lib/types";
-import { locateCase, TAIPEI_CENTER } from "./locate";
+import { geocode } from "./geocode";
+import { findDistrict, locateCase, TAIPEI_BOUNDS } from "./locate";
 
-const PALETTE = ["#e11d48", "#2563eb", "#059669", "#d97706", "#7c3aed", "#0891b2", "#db2777", "#65a30d"];
-
-// Same category → same colour, without keeping a lookup table in sync with categories.json.
-export function categoryColor(category: string): string {
-  let h = 0;
-  for (const ch of category) h = (h * 31 + ch.charCodeAt(0)) | 0;
-  return PALETTE[Math.abs(h) % PALETTE.length];
-}
+// Pastel district fills, like the city's own district maps. Neighbouring districts get different colours.
+const DISTRICT_FILL: Record<string, string> = {
+  Beitou: "#f9a8d4", Shilin: "#fdba74", Neihu: "#7dd3fc", Datong: "#7dd3fc", Zhongshan: "#d9f99d",
+  Songshan: "#f9a8d4", Zhongzheng: "#f9a8d4", "Da'an": "#fdba74", Xinyi: "#d9f99d", Wanhua: "#d9f99d",
+  Nangang: "#fef3c7", Wenshan: "#7dd3fc",
+};
 
 type Props = {
   cases: Case[];
   incidents?: Incident[];
-  highlightIds?: string[]; // e.g. the cases just created from the resident's complaint
+  highlightIds?: string[];
+  colors: Record<string, string>; // category → colour, shared with the layers panel
+  visible: Set<string>; // categories currently switched on
 };
 
-export default function CityMap({ cases, incidents = [], highlightIds = [] }: Props) {
-  // Cases that belong to an incident are drawn as part of the incident circle instead.
+export default function CityMap({ cases, incidents = [], highlightIds = [], colors, visible }: Props) {
+  // Street-level positions found by geocoding, keyed by case id.
+  const [geocoded, setGeocoded] = useState<Record<string, [number, number]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    for (const c of cases) {
+      if (c.lat != null || !c.locationText || geocoded[c.id]) continue;
+      // Text that only names a district gains nothing from geocoding.
+      if (findDistrict(c.locationText)) continue;
+      geocode(c.locationText, findDistrict(c.district)?.name ?? null).then((pos) => {
+        if (pos && !cancelled) setGeocoded((prev) => ({ ...prev, [c.id]: pos }));
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run only when the case list changes
+  }, [cases]);
+
   const grouped = new Set(incidents.flatMap((i) => i.caseIds));
+  const colorOf = (category: string) => colors[category] ?? "#6b7280";
 
   return (
-    <MapContainer center={TAIPEI_CENTER} zoom={12} scrollWheelZoom className="h-full w-full rounded-xl">
-      {/* Esri street tiles label Taipei in English; OpenStreetMap's default tiles show Chinese names. */}
-      <TileLayer
-        attribution="Tiles &copy; Esri"
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+    <MapContainer
+      bounds={TAIPEI_BOUNDS}
+      zoomSnap={0.25}
+      scrollWheelZoom
+      className="h-full w-full rounded-xl !bg-zinc-100 dark:!bg-zinc-900"
+    >
+      <GeoJSON
+        data={shapes as GeoJSON.FeatureCollection}
+        style={(feature) =>
+          ({
+            fillColor: DISTRICT_FILL[feature?.properties.name] ?? "#e5e7eb",
+            fillOpacity: 0.85,
+            color: "#ffffff",
+            weight: 2,
+          }) satisfies PathOptions
+        }
+        onEachFeature={(feature, layer: Layer) => {
+          layer.bindTooltip(feature.properties.name, { permanent: true, direction: "center", className: "district-label" });
+          layer.on({
+            mouseover: (e) => e.target.setStyle({ weight: 4, fillOpacity: 1 }),
+            mouseout: (e) => e.target.setStyle({ weight: 2, fillOpacity: 0.85 }),
+          });
+        }}
       />
 
-      {incidents.map((incident) => {
-        const color = categoryColor(incident.category);
-        const count = incident.caseIds.length;
-        return (
-          <Circle
-            key={incident.id}
-            center={[incident.lat, incident.lng]}
-            radius={150 + count * 40}
-            pathOptions={{ color, fillColor: color, fillOpacity: 0.35, weight: 2 }}
-          >
-            <Tooltip permanent direction="center" className="incident-label">
-              {count}
-            </Tooltip>
-            <Popup>
-              <strong>{incident.category}</strong>
-              <br />
-              {count} reports grouped into one incident
-            </Popup>
-          </Circle>
-        );
-      })}
+      {incidents
+        .filter((incident) => visible.has(incident.category))
+        .map((incident) => {
+          const color = colorOf(incident.category);
+          const count = incident.caseIds.length;
+          return (
+            <Circle
+              key={incident.id}
+              center={[incident.lat, incident.lng]}
+              radius={150 + count * 40}
+              pathOptions={{ color, fillColor: color, fillOpacity: 0.45, weight: 3 }}
+            >
+              <Tooltip permanent direction="center" className="incident-label">
+                {count}
+              </Tooltip>
+              <Popup>
+                <strong>{incident.category}</strong>
+                <br />
+                {count} reports grouped into one incident
+              </Popup>
+            </Circle>
+          );
+        })}
 
       {cases
-        .filter((c) => !grouped.has(c.id))
+        .filter((c) => !grouped.has(c.id) && visible.has(c.category))
         .map((c) => {
-          const position = locateCase(c);
+          const position = geocoded[c.id] ?? locateCase(c);
           if (!position) return null;
-          const color = categoryColor(c.category);
+          const color = colorOf(c.category);
           const highlighted = highlightIds.includes(c.id);
           return (
             <CircleMarker
               key={c.id}
               center={position}
-              radius={highlighted ? 11 : 7}
-              pathOptions={{ color: highlighted ? "#111827" : color, fillColor: color, fillOpacity: 0.9, weight: highlighted ? 3 : 1 }}
+              radius={highlighted ? 11 : 8}
+              pathOptions={{ color: highlighted ? "#111827" : "#ffffff", fillColor: color, fillOpacity: 1, weight: highlighted ? 3 : 2 }}
             >
               <Popup>
                 <strong>{c.category}</strong>
@@ -81,6 +124,7 @@ export default function CityMap({ cases, incidents = [], highlightIds = [] }: Pr
                   <>
                     <br />
                     📍 {c.locationText}
+                    {!geocoded[c.id] && c.lat == null && " (approximate)"}
                   </>
                 )}
               </Popup>

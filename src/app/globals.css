@@ -19,6 +19,21 @@
   }
 }
 
+/* District name in the middle of each district shape on the map. */
+.leaflet-tooltip.district-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1f2937;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+  pointer-events: none;
+}
+.leaflet-tooltip.district-label::before {
+  display: none;
+}
+
 /* Count label in the middle of a grouped-incident circle on the map. */
 .leaflet-tooltip.incident-label {
   background: transparent;
