@@ -23,3 +23,16 @@ AI triage for Taipei's 1999 citizen hotline. The team plan, roles and file owner
 - `npm run dev`: http://localhost:3000
 - `npm run build`: run before pushing
 - `npm run lint`
+
+## gstack (recommended)
+
+This project uses [gstack](https://github.com/garrytan/gstack) for AI-assisted workflows.
+Optional: nothing in this repo needs it. It requires [Bun](https://bun.sh) 1.3.3+ and takes a few minutes to install:
+
+```bash
+git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup
+```
+
+Skills like /qa, /ship, /review and /browse become available after install.
+Use /browse for all web browsing (Aside first, the bundled gstack browser as fallback). Use ~/.claude/skills/gstack/... for gstack file paths.
