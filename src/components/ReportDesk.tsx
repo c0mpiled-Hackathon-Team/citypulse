@@ -3,8 +3,10 @@
 import { useRef, useState } from "react";
 import type { Pick } from "@/components/map/CityMap";
 import { MapWithLayers, useCategoryColors } from "@/components/map/MapWithLayers";
-import { SAMPLE_CASES } from "@/components/map/sample";
+import seed from "@/data/seed.json";
 import type { Case, TriageResponse } from "@/lib/types";
+
+const SEED_CASES = seed as Case[];
 
 const EXAMPLES = [
   "Cars keep parking illegally at the corner of my lane in Da'an, and it's really loud every night.",
@@ -20,7 +22,7 @@ const MODE_LABEL: Record<TriageResponse["mode"], string> = {
 
 // Resident's view: describe a problem → AI splits and routes it → new cases appear on the city map.
 export function ReportDesk() {
-  const [cases, setCases] = useState<Case[]>(SAMPLE_CASES);
+  const [cases, setCases] = useState<Case[]>(SEED_CASES);
   const [newIds, setNewIds] = useState<string[]>([]);
   const [picked, setPicked] = useState<Pick | null>(null);
   const [text, setText] = useState("");
