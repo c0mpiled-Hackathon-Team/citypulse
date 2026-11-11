@@ -69,9 +69,9 @@ export type Incident = {
 
 | Time | What |
 |---|---|
-| **8:40–8:55** | Scaffold Next.js, add `types.ts`, push, deploy to Vercel, everyone `git pull` |
+| **8:40–8:55** | Scaffold Next.js, add `types.ts`, push, everyone `git pull` |
 | **8:55–9:50** | Build your own part in parallel. Commit small, `git pull` before every push |
-| **9:50** | **Checkpoint:** one complaint → cases → pins on the map, working end to end on Vercel |
+| **9:50** | **Checkpoint:** one complaint → cases → pins on the map, working end to end on `main` after a fresh `git pull` + `npm run dev` |
 | **9:50–10:05** | Fix bugs, grouping on the map, polish. **Feature freeze at 10:05** |
 | **10:05–10:25** | Record the 90-second Loom (screen + voice), submit video link + this repo URL |
 
@@ -82,8 +82,9 @@ export type Incident = {
   Mandarin input but always answers in English.
 - Stay in **your own files** to avoid merge conflicts. Need to change someone else's file? Tell them first.
 - `git pull` before you push. Push at least every 20 minutes.
-- **Never commit API keys.** Keys go in `.env.local` (git-ignored) and in Vercel env vars.
-- If Vercel won't deploy this org repo on the free plan, make the repo public or deploy from a personal fork.
+- **Never commit API keys.** Keys go in `.env.local` (git-ignored). Share them in person, not in the repo or chat.
+- **No hosting:** we demo on localhost. The demo video is recorded from one laptop running `npm run dev`
+  on the latest `main`, with a working `.env.local`.
 - A working small demo beats a broken big one. Cut features, not the deadline.
 
 ---
@@ -91,7 +92,7 @@ export type Incident = {
 ## Tech
 
 Next.js (App Router), TypeScript, Tailwind CSS, Leaflet (`react-leaflet`, OpenStreetMap tiles), zod,
-an OpenAI-compatible LLM API (GMI Cloud), deployed on Vercel.
+an OpenAI-compatible LLM API (GMI Cloud). Runs locally with `npm run dev`.
 
 ## Run locally
 
