@@ -19,6 +19,71 @@
   }
 }
 
+/* ---- CityPulse dashboard theme (home page), ported from the Lovable design. ----
+   Own token names so the shared --background/--foreground (used by /map) don't change. */
+:root {
+  --pulse-canvas: oklch(86% 0.005 150);
+  --pulse-ink: oklch(97% 0.005 130);
+  --pulse-ink-muted: oklch(70% 0.01 150);
+  --pulse-line: oklch(100% 0 0 / 0.12);
+  --pulse-card: oklch(20% 0.004 150);
+  --pulse-lime: oklch(90% 0.21 125);
+  --pulse-lime-ink: oklch(16% 0.01 140);
+  --pulse-danger: oklch(65% 0.2 25);
+  --pulse-progress: oklch(80% 0.14 75);
+  --pulse-progress-ink: oklch(22% 0.05 50);
+  --pulse-surface: oklch(30% 0.035 160);
+  --pulse-surface-ink: oklch(96% 0.015 100);
+  --pulse-surface-muted: oklch(76% 0.03 150);
+  --pulse-surface-line: oklch(38% 0.035 160);
+  --pulse-shell: oklch(20% 0.03 162);
+  --pulse-hero: oklch(62% 0.02 150);
+  --pulse-hero-glow: oklch(78% 0.015 140);
+  --pulse-glass: oklch(85% 0.01 140 / 0.35);
+  --pulse-glass-strong: oklch(25% 0.006 150 / 0.7);
+}
+
+@theme inline {
+  --color-canvas: var(--pulse-canvas);
+  --color-ink: var(--pulse-ink);
+  --color-ink-muted: var(--pulse-ink-muted);
+  --color-line: var(--pulse-line);
+  --color-card: var(--pulse-card);
+  --color-lime: var(--pulse-lime);
+  --color-lime-ink: var(--pulse-lime-ink);
+  --color-danger: var(--pulse-danger);
+  --color-progress: var(--pulse-progress);
+  --color-progress-ink: var(--pulse-progress-ink);
+  --color-surface: var(--pulse-surface);
+  --color-surface-ink: var(--pulse-surface-ink);
+  --color-surface-muted: var(--pulse-surface-muted);
+  --color-surface-line: var(--pulse-surface-line);
+  --color-shell: var(--pulse-shell);
+  --font-pulse: var(--font-urbanist), ui-sans-serif, system-ui, sans-serif;
+}
+
+.bg-hero-glow {
+  background-image: radial-gradient(ellipse at 60% 40%, var(--pulse-hero-glow), var(--pulse-hero) 70%);
+}
+.glass {
+  background: var(--pulse-glass);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid oklch(100% 0 0 / 0.18);
+}
+.glass-dark {
+  background: var(--pulse-glass-strong);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid oklch(100% 0 0 / 0.1);
+}
+.hatch {
+  background-image: repeating-linear-gradient(45deg, oklch(100% 0 0 / 0.55) 0 2px, transparent 2px 6px);
+}
+.shadow-shell {
+  box-shadow: 0 40px 80px -30px oklch(0% 0 0 / 0.6);
+}
+
 /* District shapes lift on hover: raise a few px, drop a shadow, brighten. */
 .leaflet-districts-pane path {
   cursor: pointer;

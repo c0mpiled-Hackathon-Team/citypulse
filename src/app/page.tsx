@@ -1,5 +1,5 @@
-import { ReportDesk } from "@/components/ReportDesk";
+import { Dashboard } from "@/components/Dashboard";
 
 export default function Home() {
-  return <ReportDesk />;
+  return <Dashboard />;
 }
