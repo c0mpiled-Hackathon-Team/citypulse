@@ -583,10 +583,13 @@ export function Dashboard() {
                   Staff view · city map
                 </button>
                 <span
-                  title="Taipei 1999 citizen hotline"
-                  className="grid size-8 place-items-center rounded-full bg-lime text-xs font-bold text-lime-ink"
+                  title="1999 is Taipei City's citizen hotline (台北市民當家熱線) for reporting local problems"
+                  className="flex items-center gap-2 rounded-full bg-lime py-1 pr-3.5 pl-1 text-xs font-semibold text-lime-ink"
                 >
-                  1999
+                  <span className="grid h-6 place-items-center rounded-full bg-lime-ink px-2 text-[11px] font-bold text-lime">
+                    1999
+                  </span>
+                  <span className="hidden sm:inline">Taipei citizen hotline</span>
                 </span>
               </div>
             </header>
@@ -601,6 +604,11 @@ export function Dashboard() {
                   <br />
                   in one pulse
                 </h1>
+                <p className="max-w-md text-sm leading-relaxed text-ink/85">
+                  AI triage for Taipei&apos;s <strong className="font-semibold text-ink">1999 citizen hotline</strong>.
+                  Describe a problem in English or Mandarin: the AI splits it into cases, routes each to the right city
+                  office, and groups duplicate reports into one incident.
+                </p>
                 <div className="glass-dark max-w-sm rounded-3xl p-5">
                   <h2 className="text-lg">Report a problem</h2>
                   <div className="mt-4">
