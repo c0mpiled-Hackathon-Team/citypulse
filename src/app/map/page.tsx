@@ -1,6 +1,6 @@
 import { MapDemo } from "@/components/map/MapDemo";
 
-// Map-only view of the demo reports. The home page (ReportDesk) is the full resident flow.
+// Map-only view of the demo reports. The home page (src/components/Dashboard.tsx) is the full resident flow.
 export default function MapPage() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 py-8">
