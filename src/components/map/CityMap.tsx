@@ -20,7 +20,7 @@ function FlyToHighlights({ positions }: { positions: [number, number][] }) {
     const key = positions.map((p) => p.join(",")).join(";");
     if (!positions.length || key === lastKey.current) return;
     lastKey.current = key;
-    map.flyToBounds(latLngBounds(positions).pad(0.5), { maxZoom: 15, duration: 0.8 });
+    map.flyToBounds(latLngBounds(positions).pad(0.5), { maxZoom: 14, duration: 0.8 });
   }, [map, positions]);
   return null;
 }
@@ -108,9 +108,13 @@ export default function CityMap({ cases, incidents = [], highlightIds = [], colo
 
   const grouped = new Set(incidents.flatMap((i) => i.caseIds));
   const colorOf = (category: string) => colors[category] ?? "#6b7280";
+  // A new case that joined an incident is drawn as part of that incident, so fly there instead.
   const highlightPositions = cases
     .filter((c) => highlightIds.includes(c.id))
-    .map((c) => geocoded[c.id] ?? locateCase(c))
+    .map((c): [number, number] | null => {
+      const incident = incidents.find((i) => i.caseIds.includes(c.id));
+      return incident ? [incident.lat, incident.lng] : (geocoded[c.id] ?? locateCase(c));
+    })
     .filter((p): p is [number, number] => p !== null);
 
   return (

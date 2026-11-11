@@ -17,19 +17,25 @@ type Props = {
   onPick?: (pick: Pick) => void; // set to let residents click the map to choose a location
 };
 
-// The map plus a "Layers" panel to switch 1999 categories on and off. Import this on pages.
-export function MapWithLayers({ cases, incidents: givenIncidents, highlightIds = [], picked, onPick }: Props) {
-  const incidents = useMemo(() => givenIncidents ?? groupCases(cases), [givenIncidents, cases]);
-  // Categories from categories.json first (stable colours), then any others found in the cases.
+// Category names (categories.json first, so colours stay stable) and their colours.
+// Exported so other UI (e.g. result cards) uses the same colour as the map.
+export function useCategoryColors(cases: Case[]) {
   const names = useMemo(() => {
     const list = categories.map((c) => c.name);
     for (const c of cases) if (!list.includes(c.category)) list.push(c.category);
     return list;
   }, [cases]);
   const colors = useMemo(
-    () => Object.fromEntries(names.map((n, i) => [n, PALETTE[i % PALETTE.length]])),
+    () => Object.fromEntries(names.map((n, i) => [n, PALETTE[i % PALETTE.length]])) as Record<string, string>,
     [names],
   );
+  return { names, colors };
+}
+
+// The map plus a "Layers" panel to switch 1999 categories on and off. Import this on pages.
+export function MapWithLayers({ cases, incidents: givenIncidents, highlightIds = [], picked, onPick }: Props) {
+  const incidents = useMemo(() => givenIncidents ?? groupCases(cases), [givenIncidents, cases]);
+  const { names, colors } = useCategoryColors(cases);
   const counts = useMemo(() => {
     const m: Record<string, number> = {};
     for (const c of cases) m[c.category] = (m[c.category] ?? 0) + 1;
