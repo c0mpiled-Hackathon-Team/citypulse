@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Illegal parking",
+    "nameZh": "違規停車",
+    "office": "Taipei City Police Department",
+    "officeZh": "臺北市政府警察局",
+    "typicalDaysToClose": 3
+  },
+  {
+    "name": "Noise",
+    "nameZh": "噪音",
+    "office": "Department of Environmental Protection",
+    "officeZh": "臺北市政府環境保護局",
+    "typicalDaysToClose": 5
+  },
+  {
+    "name": "Water pipe leak",
+    "nameZh": "自來水管漏水",
+    "office": "Taipei Water Department",
+    "officeZh": "臺北自來水事業處",
+    "typicalDaysToClose": 2
+  }
+]
