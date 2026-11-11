@@ -1,0 +1,14 @@
+[
+  { "name": "Zhongzheng", "nameZh": "中正區", "lat": 25.0324, "lng": 121.5199 },
+  { "name": "Datong", "nameZh": "大同區", "lat": 25.0634, "lng": 121.5130 },
+  { "name": "Zhongshan", "nameZh": "中山區", "lat": 25.0640, "lng": 121.5330 },
+  { "name": "Songshan", "nameZh": "松山區", "lat": 25.0500, "lng": 121.5776 },
+  { "name": "Da'an", "nameZh": "大安區", "lat": 25.0263, "lng": 121.5434 },
+  { "name": "Wanhua", "nameZh": "萬華區", "lat": 25.0286, "lng": 121.4979 },
+  { "name": "Xinyi", "nameZh": "信義區", "lat": 25.0330, "lng": 121.5654 },
+  { "name": "Shilin", "nameZh": "士林區", "lat": 25.0930, "lng": 121.5250 },
+  { "name": "Beitou", "nameZh": "北投區", "lat": 25.1320, "lng": 121.5010 },
+  { "name": "Neihu", "nameZh": "內湖區", "lat": 25.0830, "lng": 121.5880 },
+  { "name": "Nangang", "nameZh": "南港區", "lat": 25.0550, "lng": 121.6070 },
+  { "name": "Wenshan", "nameZh": "文山區", "lat": 24.9890, "lng": 121.5700 }
+]

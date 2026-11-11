@@ -19,6 +19,19 @@
   }
 }
 
+/* Count label in the middle of a grouped-incident circle on the map. */
+.leaflet-tooltip.incident-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-weight: 700;
+  font-size: 14px;
+  color: #111827;
+}
+.leaflet-tooltip.incident-label::before {
+  display: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
