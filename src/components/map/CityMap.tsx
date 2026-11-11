@@ -9,11 +9,11 @@ import type { Case, Incident } from "@/lib/types";
 import { geocode } from "./geocode";
 import { findDistrict, locateCase, TAIPEI_BOUNDS } from "./locate";
 
-// Pastel district fills, like the city's own district maps. Neighbouring districts get different colours.
+// Soft district fills (lavender, mint, sand, slate). Neighbouring districts never share a colour.
+const LAVENDER = "#c7d2fe", MINT = "#a7f3d0", SAND = "#fde68a", SLATE = "#cbd5e1";
 const DISTRICT_FILL: Record<string, string> = {
-  Beitou: "#f9a8d4", Shilin: "#fdba74", Neihu: "#7dd3fc", Datong: "#7dd3fc", Zhongshan: "#d9f99d",
-  Songshan: "#f9a8d4", Zhongzheng: "#f9a8d4", "Da'an": "#fdba74", Xinyi: "#d9f99d", Wanhua: "#d9f99d",
-  Nangang: "#fef3c7", Wenshan: "#7dd3fc",
+  Beitou: LAVENDER, Shilin: MINT, Neihu: SAND, Datong: LAVENDER, Zhongshan: SLATE, Songshan: LAVENDER,
+  Zhongzheng: MINT, "Da'an": SAND, Xinyi: MINT, Nangang: SLATE, Wanhua: SAND, Wenshan: LAVENDER,
 };
 
 type Props = {
