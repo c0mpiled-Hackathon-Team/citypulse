@@ -1,9 +1,9 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import { DomEvent, latLngBounds, type Layer, type PathOptions } from "leaflet";
+import { divIcon, DomEvent, latLngBounds, type Layer, type PathOptions } from "leaflet";
 import { useEffect, useRef, useState } from "react";
-import { Circle, CircleMarker, GeoJSON, MapContainer, Pane, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { Circle, CircleMarker, GeoJSON, MapContainer, Marker, Pane, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import shapes from "@/data/district-shapes.json";
 import type { Case, Incident } from "@/lib/types";
 import { districtAt, geocode } from "./geocode";
@@ -11,6 +11,14 @@ import { findDistrict, locateCase, TAIPEI_BOUNDS } from "./locate";
 
 // A location chosen by clicking the map. district is null when the click is outside Taipei.
 export type Pick = { lat: number; lng: number; district: string | null };
+
+// Marker for the picked spot: a rose dot with a pulsing ring (styled in globals.css).
+const PICK_ICON = divIcon({
+  className: "pick-marker",
+  html: '<span class="pick-ring"></span><span class="pick-dot"></span>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
 
 // Zoom to the highlighted (just-created) cases once they have positions.
 function FlyToHighlights({ positions }: { positions: [number, number][] }) {
@@ -265,15 +273,11 @@ export default function CityMap({ cases, incidents = [], highlightIds = [], colo
         })}
 
       {picked && (
-        <CircleMarker
-          center={[picked.lat, picked.lng]}
-          radius={10}
-          pathOptions={{ color: "#111827", fillColor: "#ffffff", fillOpacity: 1, weight: 3, dashArray: "3 3" }}
-        >
-          <Tooltip permanent direction="top" offset={[0, -10]}>
-            {picked.district ?? "Outside Taipei"}
+        <Marker position={[picked.lat, picked.lng]} icon={PICK_ICON} interactive={false}>
+          <Tooltip permanent direction="top" offset={[0, -12]} className="pick-label">
+            📍 {picked.district ?? "Outside Taipei"}
           </Tooltip>
-        </CircleMarker>
+        </Marker>
       )}
     </MapContainer>
   );
