@@ -2,15 +2,24 @@
 
 import { useMemo, useState } from "react";
 import categories from "@/data/categories.json";
+import { groupCases } from "@/lib/group";
 import type { Case, Incident } from "@/lib/types";
+import type { Pick } from "./CityMap";
 import { MapView } from "./MapView";
 
 const PALETTE = ["#65a30d", "#2563eb", "#0891b2", "#7c3aed", "#db2777", "#a16207", "#dc2626", "#1e3a8a", "#ea580c", "#6b7280"];
 
-type Props = { cases: Case[]; incidents?: Incident[]; highlightIds?: string[] };
+type Props = {
+  cases: Case[];
+  incidents?: Incident[]; // omit to group duplicates automatically with groupCases()
+  highlightIds?: string[]; // new cases: drawn bigger, and the map zooms to them
+  picked?: Pick | null; // a location the resident chose by clicking the map
+  onPick?: (pick: Pick) => void; // set to let residents click the map to choose a location
+};
 
 // The map plus a "Layers" panel to switch 1999 categories on and off. Import this on pages.
-export function MapWithLayers({ cases, incidents = [], highlightIds = [] }: Props) {
+export function MapWithLayers({ cases, incidents: givenIncidents, highlightIds = [], picked, onPick }: Props) {
+  const incidents = useMemo(() => givenIncidents ?? groupCases(cases), [givenIncidents, cases]);
   // Categories from categories.json first (stable colours), then any others found in the cases.
   const names = useMemo(() => {
     const list = categories.map((c) => c.name);
@@ -44,7 +53,15 @@ export function MapWithLayers({ cases, incidents = [], highlightIds = [] }: Prop
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
       <div className="h-[75vh] min-h-[480px] overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <MapView cases={cases} incidents={incidents} highlightIds={highlightIds} colors={colors} visible={visible} />
+        <MapView
+          cases={cases}
+          incidents={incidents}
+          highlightIds={highlightIds}
+          colors={colors}
+          visible={visible}
+          picked={picked}
+          onPick={onPick}
+        />
       </div>
 
       <aside className="self-start overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
@@ -76,6 +93,8 @@ export function MapWithLayers({ cases, incidents = [], highlightIds = [] }: Prop
         </ul>
         <p className="border-t border-zinc-200 px-4 py-2 text-xs text-zinc-500 dark:border-zinc-800">
           {shown} of {cases.length} reports shown
+          {incidents.length > 0 &&
+            ` · ${incidents.length} grouped incident${incidents.length > 1 ? "s" : ""}`}
         </p>
       </aside>
     </div>
