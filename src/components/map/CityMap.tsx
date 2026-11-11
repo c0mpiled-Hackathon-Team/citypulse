@@ -38,19 +38,26 @@ const DISTRICT_BOUNDS: Record<string, LatLngBounds> = Object.fromEntries(
   (shapes as GeoJSON.FeatureCollection).features.map((f) => [f.properties?.name, geoJSON(f).getBounds()]),
 );
 
-// Map clicks: zoomed out → fly into the clicked district (like the issue tracker).
-// Already zoomed into that district → mark the exact spot (if picking is on).
+// Map clicks, like the issue tracker: a click on any district other than the one we're focused on
+// flies into it. A click inside the focused district marks the exact spot (if picking is on).
 function MapClicks({ onPick }: { onPick?: (pick: Pick) => void }) {
+  const focused = useRef<string | null>(null);
   const map = useMapEvents({
     click: (e) => {
       const { lat, lng } = e.latlng;
       const district = districtAt(lat, lng);
       const bounds = district ? DISTRICT_BOUNDS[district] : undefined;
-      if (bounds && map.getZoom() < map.getBoundsZoom(bounds) - 0.5) {
+      const zoomedOut = bounds ? map.getZoom() < map.getBoundsZoom(bounds) - 0.5 : false;
+      if (bounds && (district !== focused.current || zoomedOut)) {
+        focused.current = district;
         map.flyToBounds(bounds, { duration: 0.7, padding: [20, 20] });
         return;
       }
       onPick?.({ lat, lng, district });
+    },
+    // Back at (or near) the full-city view: no district is focused any more.
+    zoomend: () => {
+      if (map.getZoom() <= map.getBoundsZoom(TAIPEI_BOUNDS) + 0.5) focused.current = null;
     },
   });
   return null;
